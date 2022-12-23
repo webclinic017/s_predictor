@@ -18,7 +18,9 @@ services:
     container_name: postgres
     image: postgres:latest
     volumes:
-      - ./volume/pg:/var/lib/postgresql
+      - ./volume/pg/pgdata:/var/lib/postgresql/data
+      - ./volume/pg/pgconf:/etc/postgresql
+      - ./volume/pg/pglog:/var/log/postgresql
     ports:
       - "5432:5432"
     env_file:
@@ -43,8 +45,8 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     volumes:
-      - /volume/zk-data:/var/lib/zookeeper/data
-      - /volume/zk-txn-logs:/var/lib/zookeeper/log
+      - ./volume/zk-data:/var/lib/zookeeper/data
+      - ./volume/zk-txn-logs:/var/lib/zookeeper/log
 
   broker:
     image: confluentinc/cp-kafka:5.5.1
@@ -52,6 +54,7 @@ services:
     container_name: broker
     depends_on:
       - zookeeper
+    restart: always
     ports:
       - "29092:29092"
       - "9092:9092"
@@ -67,7 +70,7 @@ services:
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_JMX_PORT: 9101
     volumes:
-      - /volume/kafka-data:/var/lib/kafka/data
+      - ./volume/kafka-data:/var/lib/kafka/data
  
   schema-registry:
     image: confluentinc/cp-schema-registry:5.5.1
@@ -86,6 +89,7 @@ services:
     image: cnfldemos/kafka-connect-datagen:0.3.2-5.5.0
     hostname: connect
     container_name: connect
+    restart: always
     depends_on:
       - zookeeper
       - broker
